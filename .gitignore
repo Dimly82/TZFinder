@@ -43,3 +43,4 @@
 # directories
 .idea/
 .cmake-build-debug/
+data/

@@ -3,13 +3,15 @@
 #include "TimeZoneFinder.h"
 
 TimezoneInfo TimezoneFinder::GetTimezone(float lat, float lon) {
-  std::vector<TimezoneRegion> regions = LoadFromFile("data/combined-with-oceans.json");
+  std::vector<TimezoneRegion> regions = LoadFromFile(GEOJSONPATH);
   Point p(lon, lat);
 
-  for (const auto &region: regions)
+  for (const auto &region: regions) {
+    if (!region.bbox.contains(lat, lon)) continue;
     for (const auto &polygon: region.polygons)
       if (IsPointInPolygon(p, polygon))
         return TimezoneInfo{region.tzId, 0};
+  }
   return TimezoneInfo{"None", 0};
 }
 
@@ -68,10 +70,28 @@ std::vector<TimezoneRegion> TimezoneFinder::LoadFromFile(const std::string &file
         }
       }
     }
+    region.bbox = ComputeBB(region.polygons);
     regions.push_back(region);
   }
   return regions;
 }
+
+BoundingBox TimezoneFinder::ComputeBB(const std::vector<std::vector<Point> > &polygons) {
+  BoundingBox bbox = {-90, 90, -180, 180};
+
+  for (const auto &polygon : polygons) {
+    for (const auto &point : polygon) {
+      float lon = point.first;
+      float lat = point.second;
+      bbox.minLat = std::min(bbox.minLat, lat);
+      bbox.maxLat = std::max(bbox.maxLat, lat);
+      bbox.minLon = std::min(bbox.minLon, lon);
+      bbox.maxLon = std::max(bbox.maxLon, lon);
+    }
+  }
+  return bbox;
+}
+
 
 
 bool TimezoneFinder::IsPointInPolygon(const Point &point, const std::vector<Point> &polygon) {
