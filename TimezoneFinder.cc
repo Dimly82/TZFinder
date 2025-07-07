@@ -1,0 +1,93 @@
+#include <algorithm>
+
+#include "TimeZoneFinder.h"
+
+TimezoneInfo TimezoneFinder::GetTimezone(float lat, float lon) {
+  std::vector<TimezoneRegion> regions = LoadFromFile("data/combined-with-oceans.json");
+  Point p(lon, lat);
+
+  for (const auto &region: regions)
+    for (const auto &polygon: region.polygons)
+      if (IsPointInPolygon(p, polygon))
+        return TimezoneInfo{region.tzId, 0};
+  return TimezoneInfo{"None", 0};
+}
+
+
+std::vector<TimezoneRegion> TimezoneFinder::LoadFromFile(const std::string &filepath) {
+  std::vector<TimezoneRegion> regions;
+
+  FILE *fp = fopen(filepath.c_str(), "rb");
+  if (!fp)
+    throw std::runtime_error("Failed to open geojson file: " + filepath);
+
+  char readBuffer[65536];
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document doc;
+  doc.ParseStream(is);
+  fclose(fp);
+
+  if (!doc.IsObject() || !doc.HasMember("features") || !doc["features"].IsArray())
+    throw std::runtime_error("Invalid geojson");
+
+  for (const auto &feature: doc["features"].GetArray()) {
+    if (!feature.IsObject()) continue;
+
+    std::string tzId;
+    if (feature.HasMember("properties") && feature["properties"].HasMember("tzid"))
+      tzId = feature["properties"]["tzid"].GetString();
+
+    const auto &geometry = feature["geometry"];
+    std::string geomType = geometry["type"].GetString();
+
+    TimezoneRegion region;
+    region.tzId = tzId;
+
+    const auto &coords = geometry["coordinates"];
+
+    if (geomType == "Polygon") {
+      for (const auto &ring: coords.GetArray()) {
+        std::vector<Point> polygon;
+        for (const auto &point: ring.GetArray()) {
+          float lon = point[0].GetFloat();
+          float lat = point[1].GetFloat();
+          polygon.emplace_back(lon, lat);
+        }
+        region.polygons.push_back(polygon);
+      }
+    } else if (geomType == "MultiPolygon") {
+      for (const auto &polygon: coords.GetArray()) {
+        for (const auto &ring: polygon.GetArray()) {
+          std::vector<Point> poly;
+          for (const auto &point: ring.GetArray()) {
+            float lon = point[0].GetFloat();
+            float lat = point[1].GetFloat();
+            poly.emplace_back(lon, lat);
+          }
+          region.polygons.push_back(poly);
+        }
+      }
+    }
+    regions.push_back(region);
+  }
+  return regions;
+}
+
+
+bool TimezoneFinder::IsPointInPolygon(const Point &point, const std::vector<Point> &polygon) {
+  size_t n = polygon.size();
+  int count = 0;
+
+  for (size_t i = 0; i < n; i++) {
+    Point p1 = polygon[i];
+    Point p2 = polygon[(i + 1) % n];
+
+    if ((point.second > std::min(p1.second, p2.second)) && (point.second <= std::max(p1.second, p2.second)) && (
+          point.first <= std::max(p1.first, p2.first))) {
+      float xIntersect = (point.second - p1.second) * (p2.first - p1.first) / (p2.second - p1.second) + p1.first;
+      if (p1.first == p2.first || point.first <= xIntersect)
+        count++;
+    }
+  }
+  return count % 2 == 1;
+}

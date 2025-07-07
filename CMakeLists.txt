@@ -3,4 +3,6 @@ project(TZFinder)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(TZFinder main.cc TimeZoneFinder.h)
+include_directories(${CMAKE_SOURCE_DIR}/external/rapidjson/include)
+
+add_executable(TZFinder main.cc TimeZoneFinder.h TimeZoneFinder.cc)

@@ -1,8 +1,10 @@
 #include <iostream>
+#include "TimezoneFinder.h"
 
 using namespace std;
 
 int main() {
-  cout << "Hello, World!" << ::endl;
+  auto res = TimezoneFinder::GetTimezone(55.7558, 37.6176);
+  cout << res.tzId;
   return 0;
 }
