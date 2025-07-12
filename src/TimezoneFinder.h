@@ -10,7 +10,7 @@
 
 typedef struct {
   std::string tzId;
-  int utcOffset;
+  float utcOffset;
 } TimezoneInfo;
 
 using Point = std::pair<float, float>;

@@ -1,18 +1,27 @@
 #include <algorithm>
 
 #include "TimeZoneFinder.h"
+#include "TimezoneOffsets.h"
 
 TimezoneInfo TimezoneFinder::GetTimezone(float lat, float lon) {
+  if (lat > 90 || lat < -90 || lon > 180 || lon < -180)
+    throw std::runtime_error("Incorrect coordinates range");
+
+  TimezoneInfo res = {"None", 0};
   std::vector<TimezoneRegion> regions = LoadFromFile(GEOJSONPATH);
   Point p(lon, lat);
 
   for (const auto &region: regions) {
     if (!region.bbox.contains(lat, lon)) continue;
     for (const auto &polygon: region.polygons)
-      if (IsPointInPolygon(p, polygon))
-        return TimezoneInfo{region.tzId, 0};
+      if (IsPointInPolygon(p, polygon)) {
+        res.tzId = region.tzId;
+        auto it = tzOffsets.find(res.tzId);
+        if (it != tzOffsets.end())
+          res.utcOffset = it->second.first;
+      }
   }
-  return TimezoneInfo{"None", 0};
+  return res;
 }
 
 
@@ -79,8 +88,8 @@ std::vector<TimezoneRegion> TimezoneFinder::LoadFromFile(const std::string &file
 BoundingBox TimezoneFinder::ComputeBB(const std::vector<std::vector<Point> > &polygons) {
   BoundingBox bbox = {-90, 90, -180, 180};
 
-  for (const auto &polygon : polygons) {
-    for (const auto &point : polygon) {
+  for (const auto &polygon: polygons) {
+    for (const auto &point: polygon) {
       float lon = point.first;
       float lat = point.second;
       bbox.minLat = std::min(bbox.minLat, lat);
@@ -93,7 +102,6 @@ BoundingBox TimezoneFinder::ComputeBB(const std::vector<std::vector<Point> > &po
 }
 
 
-
 bool TimezoneFinder::IsPointInPolygon(const Point &point, const std::vector<Point> &polygon) {
   size_t n = polygon.size();
   int count = 0;
@@ -103,7 +111,7 @@ bool TimezoneFinder::IsPointInPolygon(const Point &point, const std::vector<Poin
     Point p2 = polygon[(i + 1) % n];
 
     if ((point.second > std::min(p1.second, p2.second)) && (point.second <= std::max(p1.second, p2.second)) && (
-          point.first <= std::max(p1.first, p2.first))) {
+            point.first <= std::max(p1.first, p2.first))) {
       float xIntersect = (point.second - p1.second) * (p2.first - p1.first) / (p2.second - p1.second) + p1.first;
       if (p1.first == p2.first || point.first <= xIntersect)
         count++;
