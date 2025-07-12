@@ -29,3 +29,7 @@ make
 ``./TZFinder 55.7558 37.6176
 → Europe/Moscow, UTC+3
 ``
+
+## Тестирование (после сборки в папке build)
+
+``ctest`` или ``./tests``
