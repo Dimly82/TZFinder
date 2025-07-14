@@ -10,8 +10,9 @@ C++17-программа для определения временной зон
 ## Сборка
 
 ```bash
-git clone https://github.com/Dimly82/TZFinder
+git clone --recurse-submodules https://github.com/Dimly82/TZFinder
 cd TZFinder
+git submodule update --init -- recursive # если зависимости не установлены
 
 ./scripts/download.sh
 

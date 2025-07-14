@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.22)
 project(TZFinder)
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    execute_process(COMMAND git submodule update --init --recursive WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+endif ()
+
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/rapidjson/include)
