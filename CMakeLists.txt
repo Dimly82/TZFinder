@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/rapidjson/include)
 
-add_executable(TZFinder ./src/main.cc ./src/TimeZoneFinder.cc)
+add_executable(TZFinder ./src/main.cc ./src/TimezoneFinder.cc)
 
 enable_testing()
 

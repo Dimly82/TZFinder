@@ -6,7 +6,8 @@
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
 
-#define GEOJSONPATH "../data/combined-with-oceans.json"
+#define JSON_WORLD "../data/combined-with-oceans.json"
+#define JSON_RUSSIA "../data/russia-timezones.json"
 
 typedef struct {
   std::string tzId;
@@ -33,7 +34,7 @@ typedef struct {
 
 class TimezoneFinder {
 public:
-  static TimezoneInfo GetTimezone(float lat, float lon);
+  static TimezoneInfo GetTimezone(float lat, float lon, bool rusOnly = true);
 
 private:
   static std::vector<TimezoneRegion> LoadFromFile(const std::string &filepath);

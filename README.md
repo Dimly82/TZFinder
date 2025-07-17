@@ -14,7 +14,7 @@ git clone --recurse-submodules https://github.com/Dimly82/TZFinder
 cd TZFinder
 git submodule update --init -- recursive # если зависимости не установлены
 
-./scripts/download.sh
+./scripts/download.sh # если нужны зоны не только в России
 
 mkdir build && cd build
 cmake ..
@@ -23,7 +23,7 @@ make
 
 ## Использование
 
-``./TZFinder <latitude> <longitude>``
+``./TZFinder <latitude> <longitude> [--world]``
 
 ### Пример
 

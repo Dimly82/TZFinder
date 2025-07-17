@@ -3,12 +3,12 @@
 #include "TimeZoneFinder.h"
 #include "TimezoneOffsets.h"
 
-TimezoneInfo TimezoneFinder::GetTimezone(float lat, float lon) {
+TimezoneInfo TimezoneFinder::GetTimezone(float lat, float lon, bool rusOnly) {
   if (lat > 90 || lat < -90 || lon > 180 || lon < -180)
     throw std::runtime_error("Incorrect coordinates range");
 
   TimezoneInfo res = {"None", 0};
-  std::vector<TimezoneRegion> regions = LoadFromFile(GEOJSONPATH);
+  std::vector<TimezoneRegion> regions = LoadFromFile(rusOnly ? JSON_RUSSIA : JSON_WORLD);
   Point p(lon, lat);
 
   for (const auto &region: regions) {
