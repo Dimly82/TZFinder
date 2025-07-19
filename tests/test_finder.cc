@@ -190,3 +190,27 @@ TEST(TimezoneTest, Kamchatka) {
   EXPECT_EQ(res.tzId, exp.tzId);
   EXPECT_EQ(res.utcOffset, exp.utcOffset);
 }
+
+TEST(TimezoneTest, InvalidLatitudeHigh) {
+  EXPECT_THROW(TimezoneFinder::GetTimezone(100.0, 40.0), std::runtime_error);
+}
+
+TEST(TimezoneTest, InvalidLatitudeLow) {
+  EXPECT_THROW(TimezoneFinder::GetTimezone(-100.0, 40.0), std::runtime_error);
+}
+
+TEST(TimezoneTest, InvalidLongitudeHigh) {
+  EXPECT_THROW(TimezoneFinder::GetTimezone(50.0, 200.0), std::runtime_error);
+}
+
+TEST(TimezoneTest, InvalidLongitudeLow) {
+  EXPECT_THROW(TimezoneFinder::GetTimezone(50.0, -200.0), std::runtime_error);
+}
+
+TEST(TimezoneTest, BorderLatitudeLongitudeMax) {
+  EXPECT_NO_THROW(TimezoneFinder::GetTimezone(90.0, 180.0));
+}
+
+TEST(TimezoneTest, BorderLatitudeLongitudeMin) {
+  EXPECT_NO_THROW(TimezoneFinder::GetTimezone(-90.0, -180.0));
+}
